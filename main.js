@@ -86,28 +86,52 @@
     }
 
     panelEl.querySelectorAll('button[data-role="btn"]').forEach((btn) => {
+      const isPrimary = btn.dataset.variant === 'primary';
+
       btn.style.setProperty('padding', '4px 10px');
       btn.style.setProperty('font-size', '12px');
       btn.style.setProperty('font-family', 'inherit');
       btn.style.setProperty('border', `1px solid ${v.border}`);
       btn.style.setProperty('border-radius', '8px');
-      btn.style.setProperty('color', v.panelFg);
-      btn.style.setProperty('background', 'transparent');
       btn.style.setProperty('box-sizing', 'border-box');
       btn.style.setProperty('cursor', 'pointer');
+
+      if (isPrimary) {
+        btn.style.setProperty('color', v.panelBg);
+        btn.style.setProperty('background', v.panelFg);
+      } else {
+        btn.style.setProperty('color', v.panelFg);
+        btn.style.setProperty('background', 'transparent');
+      }
 
       if (!btn.dataset.hoverListener) {
         btn.dataset.hoverListener = 'true';
         btn.addEventListener('mouseenter', function () {
           const currentTheme = panelEl?.dataset.theme || getTheme();
-          const hoverBg =
-            currentTheme === 'dark'
-              ? 'rgba(255, 255, 255, 0.1)'
-              : 'rgba(0, 0, 0, 0.04)';
-          this.style.setProperty('background', hoverBg);
+          let hoverBg = '';
+          switch (currentTheme) {
+            case 'dark':
+              hoverBg =
+                this.dataset.variant === 'primary'
+                  ? 'rgba(255, 255, 255, 0.8)'
+                  : 'rgba(255, 255, 255, 0.1)';
+              this.style.setProperty('background', hoverBg);
+              break;
+            case 'light':
+              hoverBg =
+                this.dataset.variant === 'primary'
+                  ? 'rgba(0, 0, 0, 0.8)'
+                  : 'rgba(0, 0, 0, 0.04)';
+              this.style.setProperty('background', hoverBg);
+              break;
+          }
         });
         btn.addEventListener('mouseleave', function () {
-          this.style.setProperty('background', 'transparent');
+          const currentTheme = panelEl?.dataset.theme || getTheme();
+          const v = themeVars(currentTheme);
+          const bgColor =
+            this.dataset.variant === 'primary' ? v.panelFg : 'transparent';
+          btn.style.setProperty('background', bgColor);
         });
       }
     });
@@ -125,6 +149,10 @@
     });
     panelEl.querySelectorAll('[data-role="empty-message"]').forEach((el) => {
       el.style.setProperty('color', v.subtle2);
+    });
+    panelEl.querySelectorAll('textarea').forEach((textarea) => {
+      textarea.style.setProperty('border-color', v.border);
+      textarea.style.setProperty('color', v.panelFg);
     });
   }
 
@@ -355,6 +383,45 @@
         #__tm_translate_panel__ [data-role="result-text"]:not([data-status="error"]):not([data-status="loading"]):active::after {
           opacity: 1;
         }
+        
+        #__tm_translate_panel__ textarea {
+          box-sizing: border-box;
+          font-family: inherit;
+          font-size: inherit;
+          line-height: inherit;
+        }
+        
+        /* Scrollbar styling */
+        #__tm_translate_panel__ * {
+          scrollbar-width: thin;
+        }
+        
+        #__tm_translate_panel__[data-theme="dark"] * {
+          scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+        
+        #__tm_translate_panel__[data-theme="light"] * {
+          scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+        }
+        
+        #__tm_translate_panel__ *::-webkit-scrollbar {
+          width: 3px;
+          height: 3px;
+        }
+        
+        #__tm_translate_panel__ *::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        #__tm_translate_panel__[data-theme="dark"] *::-webkit-scrollbar-thumb {
+          background-color: rgba(255, 255, 255, 0.2);
+          border-radius: 3px;
+        }
+        
+        #__tm_translate_panel__[data-theme="light"] *::-webkit-scrollbar-thumb {
+          background-color: rgba(0, 0, 0, 0.2);
+          border-radius: 3px;
+        }
       `;
 
       document.head.appendChild(style);
@@ -384,9 +451,33 @@
       line-height: 1.4;
     `;
 
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.dataset.role = 'btn';
+    clearBtn.dataset.variant = 'secondary';
+    clearBtn.textContent = '히스토리 삭제';
+    clearBtn.onclick = () => {
+      const items = listEl.querySelectorAll('[data-role="card"]');
+      items.forEach((item) => {
+        if (item.dataset.status !== 'loading') {
+          item.classList.remove('card-enter');
+          item.classList.add('card-exit');
+        }
+      });
+      setTimeout(() => {
+        items.forEach((item) => {
+          if (item.dataset.status !== 'loading' && item.parentNode) {
+            item.remove();
+          }
+        });
+        updateEmptyState();
+      }, 300);
+    };
+
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.dataset.role = 'btn';
+    closeBtn.dataset.variant = 'secondary';
     closeBtn.textContent = '닫기';
     closeBtn.addEventListener('click', () => closePanel());
 
@@ -437,38 +528,87 @@
     const footer = document.createElement('div');
     footer.dataset.role = 'footer';
     footer.style.cssText = `
-      padding: 10px 12px;
+      padding: 12px;
+      padding-bottom: 10px;
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      gap: 8px;
       box-sizing: border-box;
       margin: 0;
       border: none;
     `;
 
-    const clearBtn = document.createElement('button');
-    clearBtn.type = 'button';
-    clearBtn.dataset.role = 'btn';
-    clearBtn.textContent = '전체 지우기';
-    clearBtn.style.cssText = `margin-left: auto;`;
-    clearBtn.onclick = () => {
-      const items = listEl.querySelectorAll('[data-role="card"]');
-      items.forEach((item) => {
-        if (item.dataset.status !== 'loading') {
-          item.classList.remove('card-enter');
-          item.classList.add('card-exit');
+    const textarea = document.createElement('textarea');
+    textarea.placeholder =
+      '문구를 직접 입력하려면 작성 후 [번역] 버튼 또는 Enter 키를 눌러주세요.';
+    textarea.rows = 3;
+    textarea.id = 'quick-tr-textarea';
+    textarea.style.cssText = `
+      width: 100%;
+      padding: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      resize: none;
+      box-sizing: border-box;
+      line-height: 1.4;
+      color: inherit;
+    `;
+
+    if (!document.getElementById('quick-tr-textarea-style')) {
+      const style = document.createElement('style');
+      style.id = 'quick-tr-textarea-style';
+      style.textContent = `
+        #quick-tr-textarea::placeholder {
+          opacity: 0.8;
         }
-      });
-      setTimeout(() => {
-        items.forEach((item) => {
-          if (item.dataset.status !== 'loading' && item.parentNode) {
-            item.remove();
-          }
-        });
-        updateEmptyState();
-      }, 300);
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Handle Enter key (translate) and Shift+Enter (newline)
+    textarea.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const text = textarea.value.trim();
+        if (text) {
+          await translateText(text);
+          textarea.value = '';
+        }
+      }
+      // Shift+Enter allows default behavior (newline)
+    });
+
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'button';
+    submitBtn.dataset.role = 'btn';
+    submitBtn.dataset.variant = 'primary';
+    submitBtn.textContent = '번역';
+    submitBtn.onclick = async () => {
+      const text = textarea.value.trim();
+      if (text) {
+        await translateText(text);
+        textarea.value = '';
+      }
     };
 
-    footer.appendChild(clearBtn);
+    const footerButtonGroup = document.createElement('div');
+    footerButtonGroup.style.cssText = `
+      display: flex;
+      gap: 5px;
+      justify-content: flex-end;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border: none;
+    `;
+
+    footerButtonGroup.appendChild(clearBtn);
+    footerButtonGroup.appendChild(submitBtn);
+    footer.appendChild(textarea);
+    footer.appendChild(footerButtonGroup);
+
     panelEl.appendChild(header);
     panelEl.appendChild(body);
     panelEl.appendChild(footer);
