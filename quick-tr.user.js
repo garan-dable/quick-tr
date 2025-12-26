@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         QuickTR
 // @namespace    http://tampermonkey.net/
-// @version      25122602
+// @version      25122603
 // @description  문구를 드래그하고 단축키를 눌러 AI로 번역하고, 결과를 페이지 내에서 확인합니다.
 // @author       garan-dable
 // @match        *://*/*

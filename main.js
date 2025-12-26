@@ -158,6 +158,29 @@
     return tag === 'input' || tag === 'textarea' || target?.isContentEditable;
   }
 
+  async function copyToClipboard(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        // @ts-ignore - execCommand is deprecated but needed as fallback for older browsers
+        const success = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        return success;
+      }
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      return false;
+    }
+  }
+
   // =========================
   // Panel (open/close)
   // =========================
@@ -291,7 +314,7 @@
           opacity: 0;
           transform: translateY(-8px) scale(0.98);
         }
-
+        
         #__tm_translate_panel__ [data-role="source-text"],
         #__tm_translate_panel__ [data-role="result-text"] {
           margin: 0;
@@ -303,6 +326,34 @@
           display: inline-block;
           width: 100%;
           position: relative;
+        }
+        
+        #__tm_translate_panel__ [data-role="source-text"]:hover,
+        #__tm_translate_panel__ [data-role="result-text"]:not([data-status="error"]):not([data-status="loading"]):hover {
+          background: rgba(128, 128, 128, 0.1);
+          text-decoration: underline;
+          text-decoration-style: dotted;
+          cursor: pointer;
+        }
+        
+        #__tm_translate_panel__ [data-role="source-text"]:hover::after,
+        #__tm_translate_panel__ [data-role="result-text"]:not([data-status="error"]):not([data-status="loading"]):hover::after {
+          content: '';
+          display: inline-block;
+          width: 10px;
+          height: 10px;
+          margin-left: 6px;
+          vertical-align: middle;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'%3E%3C/rect%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'%3E%3C/path%3E%3C/svg%3E");
+          background-size: contain;
+          background-repeat: no-repeat;
+          background-position: center;
+          opacity: 0.5;
+        }
+        
+        #__tm_translate_panel__ [data-role="source-text"]:active::after,
+        #__tm_translate_panel__ [data-role="result-text"]:not([data-status="error"]):not([data-status="loading"]):active::after {
+          opacity: 1;
         }
       `;
 
@@ -449,6 +500,12 @@
     content.textContent = displayText;
     content.style.cssText = `color: ${textColor};`;
 
+    if (!isError && resultText) {
+      content.addEventListener('click', async () => {
+        await copyToClipboard(resultText);
+      });
+    }
+
     dstEl.appendChild(label);
     dstEl.appendChild(content);
   }
@@ -563,6 +620,12 @@
     const srcContent = document.createElement('div');
     srcContent.dataset.role = 'source-text';
     srcContent.textContent = sourceText || '';
+
+    if (sourceText) {
+      srcContent.addEventListener('click', async () => {
+        await copyToClipboard(sourceText);
+      });
+    }
 
     src.appendChild(srcLabel);
     src.appendChild(srcContent);
