@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         QuickTR
 // @namespace    http://tampermonkey.net/
-// @version      25122601
-// @description  문구를 드래그하고 단축키를 눌러 AI 번역 결과를 사이드 패널에 표시합니다.
+// @version      25122602
+// @description  문구를 드래그하고 단축키를 눌러 AI로 번역하고, 결과를 페이지 내에서 확인합니다.
 // @author       garan-dable
 // @match        *://*/*
 // @updateURL    https://raw.githubusercontent.com/garan-dable/quick-tr/main/quick-tr.user.js

@@ -11,7 +11,7 @@
     API_KEY_HEADER: 'X-API-Key',
     MAX_CHARS: 3000,
     PANEL_WIDTH_PX: 300,
-    Z_INDEX: 9999,
+    Z_INDEX: 9999999,
     OPACITY: 0.95,
     TIMEOUT: 20000,
   };
@@ -66,36 +66,35 @@
 
     panelEl.dataset.theme = theme;
 
-    panelEl.style.setProperty('background', v.panelBg, 'important');
-    panelEl.style.setProperty('color', v.panelFg, 'important');
+    panelEl.style.setProperty('background', v.panelBg);
+    panelEl.style.setProperty('color', v.panelFg);
     panelEl.style.setProperty(
       'box-shadow',
       theme === 'dark'
         ? '0 0 0 1px rgba(255,255,255,0.08), 0 12px 28px rgba(0,0,0,0.40)'
-        : '0 0 0 1px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.18)',
-      'important'
+        : '0 0 0 1px rgba(0,0,0,0.08), 0 12px 28px rgba(0,0,0,0.18)'
     );
 
     const header = panelEl.querySelector('[data-role="header"]');
     const footer = panelEl.querySelector('[data-role="footer"]');
 
-    if (header)
-      header.style.setProperty(
-        'border-bottom',
-        `1px solid ${v.borderSoft}`,
-        'important'
-      );
-    if (footer)
-      footer.style.setProperty(
-        'border-top',
-        `1px solid ${v.borderSoft}`,
-        'important'
-      );
+    if (header) {
+      header.style.setProperty('border-bottom', `1px solid ${v.borderSoft}`);
+    }
+    if (footer) {
+      footer.style.setProperty('border-top', `1px solid ${v.borderSoft}`);
+    }
 
     panelEl.querySelectorAll('button[data-role="btn"]').forEach((btn) => {
-      btn.style.setProperty('border', `1px solid ${v.border}`, 'important');
-      btn.style.setProperty('color', v.panelFg, 'important');
-      btn.style.setProperty('background', 'transparent', 'important');
+      btn.style.setProperty('padding', '4px 10px');
+      btn.style.setProperty('font-size', '12px');
+      btn.style.setProperty('font-family', 'inherit');
+      btn.style.setProperty('border', `1px solid ${v.border}`);
+      btn.style.setProperty('border-radius', '8px');
+      btn.style.setProperty('color', v.panelFg);
+      btn.style.setProperty('background', 'transparent');
+      btn.style.setProperty('box-sizing', 'border-box');
+      btn.style.setProperty('cursor', 'pointer');
 
       if (!btn.dataset.hoverListener) {
         btn.dataset.hoverListener = 'true';
@@ -105,28 +104,27 @@
             currentTheme === 'dark'
               ? 'rgba(255, 255, 255, 0.1)'
               : 'rgba(0, 0, 0, 0.04)';
-          this.style.setProperty('background', hoverBg, 'important');
+          this.style.setProperty('background', hoverBg);
         });
         btn.addEventListener('mouseleave', function () {
-          this.style.setProperty('background', 'transparent', 'important');
+          this.style.setProperty('background', 'transparent');
         });
       }
     });
 
     panelEl.querySelectorAll('[data-role="card"]').forEach((card) => {
-      card.style.setProperty('border', `1px solid ${v.border}`, 'important');
-      card.style.setProperty('background', v.cardBg, 'important');
-      card.style.setProperty('color', v.panelFg, 'important');
+      card.style.setProperty('border', `1px solid ${v.border}`);
+      card.style.setProperty('background', v.cardBg);
+      card.style.setProperty('color', v.panelFg);
     });
-
     panelEl.querySelectorAll('[data-role="subtle"]').forEach((el) => {
-      el.style.setProperty('color', v.subtle, 'important');
+      el.style.setProperty('color', v.subtle);
     });
     panelEl.querySelectorAll('[data-role="subtle2"]').forEach((el) => {
-      el.style.setProperty('color', v.subtle2, 'important');
+      el.style.setProperty('color', v.subtle2);
     });
     panelEl.querySelectorAll('[data-role="empty-message"]').forEach((el) => {
-      el.style.setProperty('color', v.subtle2, 'important');
+      el.style.setProperty('color', v.subtle2);
     });
   }
 
@@ -155,15 +153,6 @@
     return window.getSelection?.().toString().trim() || '';
   }
 
-  function escapeHtml(str) {
-    return str
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
-
   function isTypingSurface(target) {
     const tag = target?.tagName?.toLowerCase();
     return tag === 'input' || tag === 'textarea' || target?.isContentEditable;
@@ -174,22 +163,18 @@
   // =========================
   function openPanel() {
     ensurePanel();
-    panelEl.style.setProperty('display', 'flex', 'important');
+    panelEl.style.setProperty('display', 'flex');
   }
 
   function closePanel() {
-    if (panelEl) panelEl.style.setProperty('display', 'none', 'important');
+    if (panelEl) panelEl.style.setProperty('display', 'none');
   }
 
   function updateEmptyState() {
     if (!emptyMessageEl || !listEl) return;
     const cards = listEl.querySelectorAll('[data-role="card"]');
     const hasCards = cards.length > 0;
-    emptyMessageEl.style.setProperty(
-      'display',
-      hasCards ? 'none' : 'block',
-      'important'
-    );
+    emptyMessageEl.style.setProperty('display', hasCards ? 'none' : 'block');
   }
 
   // =========================
@@ -197,6 +182,11 @@
   // =========================
   function ensurePanel() {
     if (panelEl && document.body.contains(panelEl)) return;
+    if (panelEl && !document.body.contains(panelEl)) {
+      panelEl = null;
+      listEl = null;
+      emptyMessageEl = null;
+    }
 
     // Root panel
     panelEl = document.createElement('div');
@@ -301,6 +291,19 @@
           opacity: 0;
           transform: translateY(-8px) scale(0.98);
         }
+
+        #__tm_translate_panel__ [data-role="source-text"],
+        #__tm_translate_panel__ [data-role="result-text"] {
+          margin: 0;
+          padding: 0;
+          border: none;
+          box-sizing: border-box;
+          line-height: 1.4;
+          font-family: inherit;
+          display: inline-block;
+          width: 100%;
+          position: relative;
+        }
       `;
 
       document.head.appendChild(style);
@@ -319,7 +322,7 @@
     `;
 
     const title = document.createElement('div');
-    title.textContent = '🌐 QuickTR';
+    title.textContent = '🌎 QuickTR';
     title.style.cssText = `
       font-weight: 700;
       font-size: 16px;
@@ -334,23 +337,13 @@
     closeBtn.type = 'button';
     closeBtn.dataset.role = 'btn';
     closeBtn.textContent = '닫기';
-    closeBtn.style.cssText = `
-      padding: 6px 10px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 12px;
-      margin: 0;
-      border: 1px solid transparent;
-      box-sizing: border-box;
-      line-height: 1.4;
-      font-family: inherit;
-    `;
     closeBtn.addEventListener('click', () => closePanel());
 
     header.appendChild(title);
     header.appendChild(closeBtn);
 
     const body = document.createElement('div');
+    body.dataset.role = 'body';
     body.style.cssText = `
       flex: 1;
       overflow: auto;
@@ -405,20 +398,7 @@
     clearBtn.type = 'button';
     clearBtn.dataset.role = 'btn';
     clearBtn.textContent = '전체 지우기';
-    clearBtn.style.cssText = `
-      padding: 7px 10px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 12px;
-      margin-left: auto;
-      margin-top: 0;
-      margin-right: 0;
-      margin-bottom: 0;
-      border: 1px solid transparent;
-      box-sizing: border-box;
-      line-height: 1.4;
-      font-family: inherit;
-    `;
+    clearBtn.style.cssText = `margin-left: auto;`;
     clearBtn.onclick = () => {
       const items = listEl.querySelectorAll('[data-role="card"]');
       items.forEach((item) => {
@@ -446,17 +426,31 @@
     applyTheme();
   }
 
-  function updateTranslationText(
-    dstEl,
-    resultText,
-    isError = false,
-    isLoading = false
-  ) {
+  function updateTranslationText(dstEl, resultText, status = 'completed') {
+    const isError = status === 'error';
+    const isLoading = status === 'loading';
     const textColor = isError ? 'red' : resultText ? 'blue' : 'inherit';
     const displayText = resultText || (isLoading ? '번역 중…' : '결과 없음');
-    dstEl.innerHTML = `<div data-role="subtle2" style="font-size:11px; margin-bottom:2px; margin-top:5px; margin-left:0; margin-right:0; padding:0; border:none; box-sizing:border-box; line-height:1.4; font-family:inherit;">번역</div><div style="margin:0; padding:0; border:none; box-sizing:border-box; line-height:1.4; font-family:inherit; color:${textColor};">${escapeHtml(
-      displayText
-    )}</div>`;
+
+    while (dstEl.firstChild) dstEl.removeChild(dstEl.firstChild);
+
+    const label = document.createElement('div');
+    label.dataset.role = 'subtle2';
+    label.textContent = '번역';
+    label.style.cssText = `
+      font-size: 11px;
+      margin: 6px 0 2px 0;
+      line-height: 1.4;
+    `;
+
+    const content = document.createElement('div');
+    content.dataset.role = 'result-text';
+    content.dataset.status = status;
+    content.textContent = displayText;
+    content.style.cssText = `color: ${textColor};`;
+
+    dstEl.appendChild(label);
+    dstEl.appendChild(content);
   }
 
   function addHistoryItem({ sourceText, resultText, status, meta }) {
@@ -464,7 +458,7 @@
 
     const item = document.createElement('div');
     item.dataset.role = 'card';
-    item.dataset.status = status || 'completed';
+    item.dataset.status = status;
     item.style.cssText = `
       position: relative;
       border-radius: 14px;
@@ -496,7 +490,6 @@
 
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
-    removeBtn.dataset.role = 'btn';
     removeBtn.setAttribute('aria-label', 'remove');
     removeBtn.style.cssText = `
       position: absolute;
@@ -504,17 +497,11 @@
       right: 6px;
       width: 20px;
       height: 20px;
-      border-radius: 10px;
       cursor: pointer;
-      font-size: 15px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0;
-      padding: 0;
-      border: 1px solid transparent;
       box-sizing: border-box;
-      line-height: 1;
       font-family: inherit;
     `;
     const removeBtnText = document.createElement('span');
@@ -522,14 +509,20 @@
     removeBtnText.style.cssText = `
       transform: translateY(-1px);
       display: inline-block;
-      margin: 0;
-      padding: 0;
       border: none;
       box-sizing: border-box;
+      font-size: 18px;
       line-height: 1;
       font-family: inherit;
+      opacity: 0.5;
     `;
     removeBtn.appendChild(removeBtnText);
+    removeBtn.addEventListener('mouseenter', () => {
+      removeBtnText.style.setProperty('opacity', '1');
+    });
+    removeBtn.addEventListener('mouseleave', () => {
+      removeBtnText.style.setProperty('opacity', '0.5');
+    });
     removeBtn.addEventListener('click', () => {
       if (item.dataset.status !== 'loading') {
         item.classList.remove('card-enter');
@@ -557,9 +550,22 @@
       line-height: 1.4;
       font-family: inherit;
     `;
-    src.innerHTML = `<div data-role="subtle2" style="font-size:11px; margin-bottom:2px; margin-top:0; margin-left:0; margin-right:0; padding:0; border:none; box-sizing:border-box; line-height:1.4; font-family:inherit;">원문</div><div style="margin:0; padding:0; border:none; box-sizing:border-box; line-height:1.4; font-family:inherit;">${escapeHtml(
-      sourceText || ''
-    )}</div>`;
+
+    const srcLabel = document.createElement('div');
+    srcLabel.dataset.role = 'subtle2';
+    srcLabel.textContent = '원문';
+    srcLabel.style.cssText = `
+    font-size: 11px;
+    margin-bottom: 2px;
+    line-height: 1.4;
+  `;
+
+    const srcContent = document.createElement('div');
+    srcContent.dataset.role = 'source-text';
+    srcContent.textContent = sourceText || '';
+
+    src.appendChild(srcLabel);
+    src.appendChild(srcContent);
 
     const dst = document.createElement('div');
     dst.style.cssText = `
@@ -571,19 +577,14 @@
       line-height: 1.4;
       font-family: inherit;
     `;
-    updateTranslationText(dst, resultText || '', false, status === 'loading');
+    updateTranslationText(dst, resultText || '', status);
 
     const metaLine = document.createElement('div');
     metaLine.dataset.role = 'subtle2';
     metaLine.textContent = meta || '';
     metaLine.style.cssText = `
       font-size: 11px;
-      margin: 0;
-      padding: 0;
-      border: none;
-      box-sizing: border-box;
       line-height: 1.4;
-      font-family: inherit;
     `;
 
     item.appendChild(topRow);
@@ -598,16 +599,16 @@
       });
     });
 
-    const body = panelEl.querySelector('div[style*="overflow: auto"]');
+    const body = panelEl.querySelector('[data-role="body"]');
     if (body) body.scrollTop = 0;
 
     updateEmptyState();
     applyTheme();
 
     return {
-      setTranslated(text, isError = false) {
-        updateTranslationText(dst, text, isError, false);
-        item.dataset.status = isError ? 'error' : 'completed';
+      setTranslated(text, status = 'completed') {
+        updateTranslationText(dst, text, status);
+        item.dataset.status = status;
         applyTheme();
       },
       setMeta(text) {
@@ -647,13 +648,58 @@
             if (!json.result) throw new Error('Missing or invalid result');
             resolve(json);
           } catch (err) {
-            reject(err);
+            const error =
+              err instanceof Error
+                ? err
+                : new Error('Failed to parse response');
+            reject(error);
           }
         },
         onerror: () => reject(new Error('Network error')),
         ontimeout: () => reject(new Error('Timeout')),
       });
     });
+  }
+
+  async function translateText(text) {
+    if (pending) {
+      openPanel();
+      return;
+    }
+    if (!text?.trim()) return;
+
+    openPanel();
+    pending = true;
+
+    const ui = addHistoryItem({
+      sourceText: text,
+      resultText: '',
+      status: 'loading',
+      meta: '',
+    });
+
+    try {
+      if (text.length > CONFIG.MAX_CHARS) {
+        throw new Error(
+          `최대 번역 가능한 글자수는 ${CONFIG.MAX_CHARS.toLocaleString(
+            'ko-KR'
+          )}자입니다.`
+        );
+      }
+      const startedAt = Date.now();
+      const data = await requestTranslateTo(text);
+      const elapsed = Date.now() - startedAt;
+
+      ui.setTranslated(data.result);
+
+      const parts = [];
+      parts.push(`${elapsed}ms`);
+      ui.setMeta(parts.join(' · '));
+    } catch (err) {
+      ui.setTranslated(`에러: ${String(err?.message || err)}`, 'error');
+    } finally {
+      pending = false;
+    }
   }
 
   // =========================
@@ -674,38 +720,7 @@
         return;
       }
 
-      openPanel();
-      pending = true;
-
-      const ui = addHistoryItem({
-        sourceText: selected,
-        resultText: '',
-        status: 'loading',
-        meta: '',
-      });
-
-      try {
-        if (selected.length > CONFIG.MAX_CHARS) {
-          throw new Error(
-            `최대 번역 가능한 글자수는 ${CONFIG.MAX_CHARS.toLocaleString(
-              'ko-KR'
-            )}자입니다.`
-          );
-        }
-        const startedAt = Date.now();
-        const data = await requestTranslateTo(selected);
-        const elapsed = Date.now() - startedAt;
-
-        ui.setTranslated(data.result);
-
-        const parts = [];
-        parts.push(`${elapsed}ms`);
-        ui.setMeta(parts.join(' · '));
-      } catch (err) {
-        ui.setTranslated(`에러: ${String(err?.message || err)}`, true);
-      } finally {
-        pending = false;
-      }
+      await translateText(selected);
     },
     true
   );
