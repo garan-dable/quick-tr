@@ -188,11 +188,11 @@
     panelEl.querySelectorAll('[data-role="dst-row"]').forEach((row) => {
       row.style.setProperty('border-top-color', v.divider);
     });
-    panelEl.querySelectorAll('[data-role="lang-en"]').forEach((el) => {
+    panelEl.querySelectorAll('[data-role="lang-req"]').forEach((el) => {
       el.style.setProperty('background', v.badgeBg);
       el.style.setProperty('color', v.badgeFg);
     });
-    panelEl.querySelectorAll('[data-role="lang-ko"]').forEach((el) => {
+    panelEl.querySelectorAll('[data-role="lang-res"]').forEach((el) => {
       el.style.setProperty('background', v.accentSoft);
       el.style.setProperty('color', v.accent);
     });
@@ -896,10 +896,10 @@
       padding-right: 18px;
       box-sizing: border-box;
     `;
-    const enBadge = document.createElement('span');
-    enBadge.dataset.role = 'lang-en';
-    enBadge.textContent = 'EN';
-    enBadge.style.cssText = LANG_BADGE_CSS;
+    const reqBadge = document.createElement('span');
+    reqBadge.dataset.role = 'lang-req';
+    reqBadge.textContent = '-';
+    reqBadge.style.cssText = LANG_BADGE_CSS;
     const srcContent = document.createElement('div');
     srcContent.dataset.role = 'source-text';
     srcContent.textContent = sourceText || '';
@@ -917,7 +917,7 @@
         await copyToClipboard(sourceText);
       });
     }
-    srcRow.appendChild(enBadge);
+    srcRow.appendChild(reqBadge);
     srcRow.appendChild(srcContent);
 
     // 번역 행 (divider + KO 배지 + 번역문)
@@ -932,10 +932,10 @@
       border-top: 1px solid transparent;
       box-sizing: border-box;
     `;
-    const koBadge = document.createElement('span');
-    koBadge.dataset.role = 'lang-ko';
-    koBadge.textContent = 'KO';
-    koBadge.style.cssText = LANG_BADGE_CSS;
+    const resBadge = document.createElement('span');
+    resBadge.dataset.role = 'lang-res';
+    resBadge.textContent = '-';
+    resBadge.style.cssText = LANG_BADGE_CSS;
     const dst = document.createElement('div');
     dst.dataset.role = 'result-text';
     dst.style.cssText = `
@@ -950,7 +950,7 @@
       font-family: inherit;
     `;
     updateTranslationText(dst, resultText || '', status);
-    dstRow.appendChild(koBadge);
+    dstRow.appendChild(resBadge);
     dstRow.appendChild(dst);
 
     // 메타 (소요 시간)
@@ -992,6 +992,10 @@
         metaLine.textContent = text || '';
         applyTheme();
       },
+      setLangs(reqLang, resLang) {
+        reqBadge.textContent = reqLang || '-';
+        resBadge.textContent = resLang || '-';
+      },
     };
   }
 
@@ -1022,7 +1026,7 @@
           }
           try {
             const json = JSON.parse(res.response);
-            if (!json.result) throw new Error('Missing or invalid result');
+            if (!json.translated) throw new Error('Missing or invalid result');
             resolve(json);
           } catch (err) {
             const error =
@@ -1067,7 +1071,8 @@
       const data = await requestTranslateTo(text);
       const elapsed = Date.now() - startedAt;
 
-      ui.setTranslated(data.result);
+      ui.setLangs(data.reqLang, data.resLang);
+      ui.setTranslated(data.translated);
 
       const parts = [];
       parts.push(`${elapsed}ms`);
