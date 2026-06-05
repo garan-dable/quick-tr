@@ -9,5 +9,7 @@
 // @downloadURL  https://raw.githubusercontent.com/garan-dable/quick-tr/main/quick-tr.user.js
 // @require      https://raw.githubusercontent.com/garan-dable/quick-tr/main/main.js
 // @grant        GM_xmlhttpRequest
+// @grant        GM_setValue
+// @grant        GM_getValue
 // @connect      *
 // ==/UserScript==

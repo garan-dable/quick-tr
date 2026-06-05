@@ -11,6 +11,9 @@
     API_KEY_HEADER: 'X-API-Key',
     MAX_CHARS: 3000,
     PANEL_WIDTH_PX: 300,
+    PANEL_WIDTH_MIN_PX: 240,
+    PANEL_WIDTH_MAX_PX: 900,
+    PANEL_WIDTH_STORAGE_KEY: 'quick-tr-panel-width',
     Z_INDEX: 9999999,
     OPACITY: 0.95,
     TIMEOUT: 20000,
@@ -23,6 +26,28 @@
   let listEl = null;
   let emptyMessageEl = null;
   let pending = false;
+
+  // =========================
+  // Panel width (persisted across all sites via GM storage)
+  // =========================
+  function clampPanelWidth(width) {
+    const max = Math.min(CONFIG.PANEL_WIDTH_MAX_PX, window.innerWidth * 0.8);
+    return Math.max(CONFIG.PANEL_WIDTH_MIN_PX, Math.min(max, width));
+  }
+
+  function getSavedPanelWidth() {
+    let saved = CONFIG.PANEL_WIDTH_PX;
+    if (typeof GM_getValue === 'function') {
+      saved = GM_getValue(CONFIG.PANEL_WIDTH_STORAGE_KEY, CONFIG.PANEL_WIDTH_PX);
+    }
+    return clampPanelWidth(Number(saved) || CONFIG.PANEL_WIDTH_PX);
+  }
+
+  function savePanelWidth(width) {
+    if (typeof GM_setValue === 'function') {
+      GM_setValue(CONFIG.PANEL_WIDTH_STORAGE_KEY, width);
+    }
+  }
 
   // =========================
   // Theme helpers
@@ -247,7 +272,7 @@
       top: 0;
       right: 0;
       height: 100vh;
-      width: ${CONFIG.PANEL_WIDTH_PX}px;
+      width: ${getSavedPanelWidth()}px;
       z-index: ${CONFIG.Z_INDEX};
       display: none;
       flex-direction: column;
@@ -609,6 +634,48 @@
     footer.appendChild(textarea);
     footer.appendChild(footerButtonGroup);
 
+    // Resize handle (left edge — drag to adjust panel width)
+    const resizeHandle = document.createElement('div');
+    resizeHandle.dataset.role = 'resize-handle';
+    resizeHandle.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 6px;
+      height: 100%;
+      cursor: ew-resize;
+      z-index: 1;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+    `;
+    resizeHandle.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const startX = e.clientX;
+      const startWidth = panelEl.getBoundingClientRect().width;
+      const prevUserSelect = document.body.style.userSelect;
+      document.body.style.userSelect = 'none';
+
+      const onMouseMove = (moveEvent) => {
+        // Panel is anchored to the right, so dragging left widens it.
+        const nextWidth = clampPanelWidth(startWidth + (startX - moveEvent.clientX));
+        panelEl.style.width = `${nextWidth}px`;
+      };
+
+      const onMouseUp = () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        document.body.style.userSelect = prevUserSelect;
+        savePanelWidth(panelEl.getBoundingClientRect().width);
+      };
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+
+    panelEl.appendChild(resizeHandle);
     panelEl.appendChild(header);
     panelEl.appendChild(body);
     panelEl.appendChild(footer);
